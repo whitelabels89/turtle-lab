@@ -22,7 +22,10 @@ def index():
 def parse_code():
     """Parse Python turtle code and convert to JavaScript commands"""
     try:
-        code = request.json.get('code', '')
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'})
+        code = data.get('code', '')
         if not code.strip():
             return jsonify({'success': False, 'error': 'No code provided'})
         
@@ -41,10 +44,12 @@ def parse_turtle_code(code):
     # Clean up the code
     lines = code.split('\n')
     
-    # Track turtle variable names
+    # Track turtle variable names and loop variables
     turtle_vars = set()
+    loop_stack = []
     
     for line in lines:
+        original_line = line
         line = line.strip()
         if not line or line.startswith('#'):
             continue
@@ -60,25 +65,33 @@ def parse_turtle_code(code):
             commands.append({'type': 'create_turtle'})
             continue
             
+        # Handle for loops
+        if line.startswith('for '):
+            loop_match = re.match(r'for\s+(\w+)\s+in\s+range\((\d+)\):', line)
+            if loop_match:
+                loop_var = loop_match.group(1)
+                iterations = int(loop_match.group(2))
+                loop_stack.append({'var': loop_var, 'iterations': iterations, 'commands': []})
+                commands.append({'type': 'start_loop', 'iterations': iterations})
+            continue
+            
+        # Check if we're inside a loop
+        current_loop = loop_stack[-1] if loop_stack else None
+        
         # Direct turtle commands
         if line.startswith('turtle.'):
-            command = line.replace('turtle.', '').rstrip('()')
-            commands.extend(parse_turtle_command(command))
+            command = line.replace('turtle.', '')
+            parsed_commands = parse_turtle_command(command)
+            commands.extend(parsed_commands)
             continue
             
         # Variable-based turtle commands
         for var in turtle_vars:
             if line.startswith(f'{var}.'):
-                command = line.replace(f'{var}.', '').rstrip('()')
-                commands.extend(parse_turtle_command(command))
+                command = line.replace(f'{var}.', '')
+                parsed_commands = parse_turtle_command(command)
+                commands.extend(parsed_commands)
                 break
-        
-        # Handle for loops
-        if line.startswith('for '):
-            loop_match = re.match(r'for\s+\w+\s+in\s+range\((\d+)\):', line)
-            if loop_match:
-                iterations = int(loop_match.group(1))
-                commands.append({'type': 'start_loop', 'iterations': iterations})
         
         # Handle turtle.done()
         if 'turtle.done()' in line:
@@ -109,16 +122,29 @@ def parse_turtle_command(command_line):
     
     # Map turtle commands to our format
     if cmd_name == 'forward' or cmd_name == 'fd':
-        distance = int(args[0]) if args else 100
+        try:
+            distance = int(args[0]) if args else 100
+        except ValueError:
+            # Handle variable expressions like 'i * 2'
+            distance = 100  # Default fallback
         commands.append({'type': 'forward', 'distance': distance})
     elif cmd_name == 'backward' or cmd_name == 'bk':
-        distance = int(args[0]) if args else 100
+        try:
+            distance = int(args[0]) if args else 100
+        except ValueError:
+            distance = 100  # Default fallback
         commands.append({'type': 'backward', 'distance': distance})
     elif cmd_name == 'left' or cmd_name == 'lt':
-        angle = int(args[0]) if args else 90
+        try:
+            angle = int(args[0]) if args else 90
+        except ValueError:
+            angle = 90  # Default fallback
         commands.append({'type': 'left', 'angle': angle})
     elif cmd_name == 'right' or cmd_name == 'rt':
-        angle = int(args[0]) if args else 90
+        try:
+            angle = int(args[0]) if args else 90
+        except ValueError:
+            angle = 90  # Default fallback
         commands.append({'type': 'right', 'angle': angle})
     elif cmd_name == 'color':
         color = args[0] if args else 'black'
