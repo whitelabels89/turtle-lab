@@ -10,7 +10,8 @@ class TurtleCanvas {
             color: 'black',
             fillColor: 'black',
             penSize: 1,
-            filling: false
+            filling: false,
+            visible: true
         };
         this.speed = 5;
         this.animationQueue = [];
@@ -33,6 +34,7 @@ class TurtleCanvas {
         this.turtle.fillColor = 'black';
         this.turtle.penSize = 1;
         this.turtle.filling = false;
+        this.turtle.visible = true;
         
         // Clear animation queue
         this.animationQueue = [];
@@ -44,6 +46,8 @@ class TurtleCanvas {
     }
     
     drawTurtle() {
+        if (!this.turtle.visible) return;
+        
         const ctx = this.ctx;
         const size = 10;
         
@@ -74,17 +78,44 @@ class TurtleCanvas {
         ctx.restore();
     }
     
+    drawDot(size, color) {
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.arc(this.turtle.x, this.turtle.y, size / 2, 0, 2 * Math.PI);
+        this.ctx.fill();
+    }
+    
     async executeCommands(commands) {
-        if (this.isAnimating) return;
+        if (this.isAnimating) {
+            console.log('Animation already running, stopping previous animation');
+            this.stopAnimation();
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait for stop
+        }
         
+        console.log(`Starting animation with ${commands.length} commands`);
         this.isAnimating = true;
         this.animationQueue = [...commands];
         
+        let commandIndex = 0;
         while (this.animationQueue.length > 0 && this.isAnimating) {
             const command = this.animationQueue.shift();
-            await this.executeCommand(command);
+            commandIndex++;
+            console.log(`Executing command ${commandIndex}/${commands.length}: ${command.type}`);
+            
+            try {
+                await this.executeCommand(command);
+            } catch (error) {
+                console.error(`Error executing command ${command.type}:`, error);
+                break;
+            }
+            
+            // Add small delay to prevent browser freezing
+            if (commandIndex % 10 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 1));
+            }
         }
         
+        console.log('Animation completed');
         this.isAnimating = false;
     }
     
@@ -143,6 +174,25 @@ class TurtleCanvas {
                     }
                     this.turtle.filling = false;
                     this.fillPath = [];
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'dot':
+                    this.drawDot(command.size || 5, command.color || 'black');
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'setheading':
+                    this.turtle.angle = command.angle || 0;
+                    this.redraw();
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'hideturtle':
+                    this.turtle.visible = false;
+                    this.redraw();
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'showturtle':
+                    this.turtle.visible = true;
+                    this.redraw();
                     setTimeout(resolve, delay / 4);
                     break;
                 case 'start_loop':
@@ -342,8 +392,15 @@ class TurtleCanvas {
     }
     
     stopAnimation() {
+        console.log('Stopping animation');
         this.isAnimating = false;
         this.animationQueue = [];
+        
+        // Clear any pending timeouts
+        if (this.currentTimeout) {
+            clearTimeout(this.currentTimeout);
+            this.currentTimeout = null;
+        }
     }
 }
 

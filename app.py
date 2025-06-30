@@ -41,21 +41,51 @@ def parse_turtle_code(code):
     """Parse Python turtle code and extract drawing commands"""
     commands = []
     
-    # Clean up the code
+    # Clean up the code and expand function calls
     lines = code.split('\n')
     
-    # Track turtle variable names and loop variables
+    # Track turtle variable names, loop variables, and functions
     turtle_vars = set()
     loop_stack = []
+    functions = {}
+    current_function = None
     
+    # First pass: extract function definitions
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith('def ') and line.endswith(':'):
+            func_name = line.split('def ')[1].split('(')[0].strip()
+            func_body = []
+            i += 1
+            # Collect function body
+            while i < len(lines):
+                func_line = lines[i]
+                if func_line.strip() and not func_line.startswith(' ') and not func_line.startswith('\t'):
+                    break
+                if func_line.strip():
+                    func_body.append(func_line.strip())
+                i += 1
+            functions[func_name] = func_body
+            continue
+        i += 1
+    
+    # Second pass: process main code and expand function calls
     for line in lines:
         original_line = line
         line = line.strip()
         if not line or line.startswith('#'):
             continue
             
-        # Import statements
-        if 'import turtle' in line:
+        # Skip function definitions
+        if line.startswith('def ') and line.endswith(':'):
+            continue
+        if line in ['turtle.done()', 'screen.mainloop()']:
+            commands.append({'type': 'done'})
+            continue
+            
+        # Import statements and setup
+        if any(keyword in line for keyword in ['import', 'screen =', 'Screen()', 'bgcolor']):
             continue
             
         # Turtle creation
@@ -65,37 +95,48 @@ def parse_turtle_code(code):
             commands.append({'type': 'create_turtle'})
             continue
             
-        # Handle for loops
+        # Handle for loops - skip them in function expansion
         if line.startswith('for '):
-            loop_match = re.match(r'for\s+(\w+)\s+in\s+range\((\d+)\):', line)
-            if loop_match:
-                loop_var = loop_match.group(1)
-                iterations = int(loop_match.group(2))
-                loop_stack.append({'var': loop_var, 'iterations': iterations, 'commands': []})
-                commands.append({'type': 'start_loop', 'iterations': iterations})
             continue
             
-        # Check if we're inside a loop
-        current_loop = loop_stack[-1] if loop_stack else None
+        # Function calls - expand them
+        for func_name in functions:
+            if line == f'{func_name}()' or line.startswith(f'{func_name}()'):
+                # Expand function body
+                for func_line in functions[func_name]:
+                    # Process each line in the function
+                    parsed_func_commands = parse_single_line(func_line, turtle_vars)
+                    commands.extend(parsed_func_commands)
+                break
+        else:
+            # Regular turtle commands
+            parsed_commands = parse_single_line(line, turtle_vars)
+            commands.extend(parsed_commands)
+    
+    return commands
+
+def parse_single_line(line, turtle_vars):
+    """Parse a single line of turtle code"""
+    commands = []
+    line = line.strip()
+    
+    if not line or line.startswith('#'):
+        return commands
         
-        # Direct turtle commands
-        if line.startswith('turtle.'):
-            command = line.replace('turtle.', '')
+    # Direct turtle commands
+    if line.startswith('turtle.'):
+        command = line.replace('turtle.', '')
+        parsed_commands = parse_turtle_command(command)
+        commands.extend(parsed_commands)
+        return commands
+        
+    # Variable-based turtle commands
+    for var in turtle_vars:
+        if line.startswith(f'{var}.'):
+            command = line.replace(f'{var}.', '')
             parsed_commands = parse_turtle_command(command)
             commands.extend(parsed_commands)
-            continue
-            
-        # Variable-based turtle commands
-        for var in turtle_vars:
-            if line.startswith(f'{var}.'):
-                command = line.replace(f'{var}.', '')
-                parsed_commands = parse_turtle_command(command)
-                commands.extend(parsed_commands)
-                break
-        
-        # Handle turtle.done()
-        if 'turtle.done()' in line:
-            commands.append({'type': 'done'})
+            break
     
     return commands
 
@@ -154,11 +195,22 @@ def parse_turtle_command(command_line):
     elif cmd_name == 'pendown' or cmd_name == 'pd':
         commands.append({'type': 'pendown'})
     elif cmd_name == 'goto':
-        x = float(args[0]) if len(args) > 0 else 0
-        y = float(args[1]) if len(args) > 1 else 0
+        try:
+            x = float(args[0]) if len(args) > 0 else 0
+        except (ValueError, TypeError):
+            # Handle variables like 'x', 'window_x', etc.
+            x = 0  # Default fallback
+        try:
+            y = float(args[1]) if len(args) > 1 else 0
+        except (ValueError, TypeError):
+            # Handle variables like 'y', 'window_y', etc.
+            y = 0  # Default fallback
         commands.append({'type': 'goto', 'x': x, 'y': y})
     elif cmd_name == 'circle':
-        radius = int(args[0]) if args else 50
+        try:
+            radius = int(args[0]) if args else 50
+        except (ValueError, TypeError):
+            radius = 50  # Default fallback for variables
         commands.append({'type': 'circle', 'radius': radius})
     elif cmd_name == 'speed':
         speed = args[0] if args else 'normal'
@@ -171,8 +223,28 @@ def parse_turtle_command(command_line):
         color = args[0] if args else 'black'
         commands.append({'type': 'fillcolor', 'color': color})
     elif cmd_name == 'pensize' or cmd_name == 'width':
-        size = int(args[0]) if args else 1
+        try:
+            size = int(args[0]) if args else 1
+        except (ValueError, TypeError):
+            size = 1  # Default fallback for variables
         commands.append({'type': 'pensize', 'size': size})
+    elif cmd_name == 'dot':
+        try:
+            size = int(args[0]) if args else 5
+        except (ValueError, TypeError):
+            size = 5  # Default fallback
+        color = args[1] if len(args) > 1 else 'black'
+        commands.append({'type': 'dot', 'size': size, 'color': color})
+    elif cmd_name == 'setheading':
+        try:
+            angle = int(args[0]) if args else 0
+        except (ValueError, TypeError):
+            angle = 0  # Default fallback
+        commands.append({'type': 'setheading', 'angle': angle})
+    elif cmd_name == 'hideturtle' or cmd_name == 'ht':
+        commands.append({'type': 'hideturtle'})
+    elif cmd_name == 'showturtle' or cmd_name == 'st':
+        commands.append({'type': 'showturtle'})
     
     return commands
 

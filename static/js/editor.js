@@ -2,6 +2,44 @@
 let codeEditor;
 let savedPrograms = [];
 
+// Debug console function
+function debugLog(message, type = 'info') {
+    const console = document.getElementById('debugConsole');
+    if (!console) return;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const colorClass = {
+        'info': 'text-info',
+        'success': 'text-success',
+        'warning': 'text-warning',
+        'error': 'text-danger'
+    }[type] || 'text-light';
+    
+    const logEntry = document.createElement('div');
+    logEntry.className = colorClass;
+    logEntry.innerHTML = `[${timestamp}] ${message}`;
+    
+    console.appendChild(logEntry);
+    console.scrollTop = console.scrollHeight;
+}
+
+function clearDebugConsole() {
+    const console = document.getElementById('debugConsole');
+    if (console) {
+        console.innerHTML = '<div class="text-success">Console cleared...</div>';
+    }
+}
+
+function showStopButton() {
+    document.getElementById('stopBtn').style.display = 'inline-block';
+    document.getElementById('runBtn').style.display = 'none';
+}
+
+function hideStopButton() {
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('runBtn').style.display = 'inline-block';
+}
+
 // Initialize CodeMirror editor
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize CodeMirror
@@ -42,6 +80,19 @@ function setupEventListeners() {
     
     // Save button
     document.getElementById('saveBtn').addEventListener('click', saveProgram);
+    
+    // Clear console button
+    document.getElementById('clearConsoleBtn').addEventListener('click', clearDebugConsole);
+    
+    // Stop button
+    document.getElementById('stopBtn').addEventListener('click', function() {
+        debugLog('Stop button clicked', 'warning');
+        if (turtleCanvas) {
+            turtleCanvas.stopAnimation();
+        }
+        hideStopButton();
+        showSuccessMessage('Animation stopped!');
+    });
     
     // Example buttons
     document.querySelectorAll('.example-btn').forEach(btn => {
@@ -90,7 +141,10 @@ async function runCode() {
     const runBtn = document.getElementById('runBtn');
     const code = codeEditor.getValue();
     
+    debugLog('Starting code execution...', 'info');
+    
     if (!code.trim()) {
+        debugLog('No code provided', 'warning');
         showError('Please write some turtle code first!');
         return;
     }
@@ -100,6 +154,8 @@ async function runCode() {
     runBtn.disabled = true;
     
     try {
+        debugLog('Sending code to parser...', 'info');
+        
         // Parse the code
         const response = await fetch('/api/parse-code', {
             method: 'POST',
@@ -110,28 +166,41 @@ async function runCode() {
         });
         
         const result = await response.json();
+        debugLog(`Parser response: ${result.success ? 'Success' : 'Failed'}`, result.success ? 'success' : 'error');
         
         if (result.success) {
+            debugLog(`Parsed ${result.commands.length} commands`, 'info');
+            
+            // Show stop button during execution
+            showStopButton();
+            
             // Clear canvas and execute commands
             turtleCanvas.reset();
             
             // Expand loops in commands
             const expandedCommands = expandLoops(result.commands);
+            debugLog(`Expanded to ${expandedCommands.length} total commands`, 'info');
             
             // Execute the turtle commands
+            debugLog('Executing turtle commands...', 'info');
             await turtleCanvas.executeCommands(expandedCommands);
             
+            debugLog('Execution completed successfully!', 'success');
+            hideStopButton();
             showSuccessMessage('Code executed successfully! 🐢');
         } else {
+            debugLog(`Parse error: ${result.error}`, 'error');
             showError(result.error || 'Failed to parse the code');
         }
     } catch (error) {
+        debugLog(`Runtime error: ${error.message}`, 'error');
         console.error('Error running code:', error);
         showError('Failed to run the code. Please check your syntax.');
     } finally {
         // Remove loading state
         runBtn.classList.remove('loading');
         runBtn.disabled = false;
+        hideStopButton();
     }
 }
 

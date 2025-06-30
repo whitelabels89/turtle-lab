@@ -32,6 +32,10 @@
                         <i class="fas fa-play me-1"></i>
                         Run Code
                     </button>
+                    <button class="btn btn-outline-danger me-2" id="stopBtn" style="display: none;">
+                        <i class="fas fa-stop me-1"></i>
+                        Stop
+                    </button>
                     <button class="btn btn-outline-warning me-2" id="clearBtn">
                         <i class="fas fa-broom me-1"></i>
                         Clear Canvas
@@ -200,6 +204,25 @@ turtle.done()</textarea>
                                     <button class="btn btn-sm w-100 color-btn" data-color="black" style="background-color: black;">Black</button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Debug Console -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-terminal me-2"></i>
+                                Debug Console
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="debugConsole" class="bg-dark text-light p-2 rounded" style="height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                                <div class="text-success">Console ready...</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary mt-2" id="clearConsoleBtn">
+                                <i class="fas fa-trash me-1"></i>
+                                Clear Console
+                            </button>
                         </div>
                     </div>
 
