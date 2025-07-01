@@ -27,7 +27,16 @@ A web-based Python turtle graphics playground designed for kids to learn program
 
 ## Recent Changes
 
-### 2025-06-30: Enhanced Parser and Debug Features
+### 2025-07-01: Turtle Shapes and Color Features
+- Fixed loop parsing and execution - now properly handles for loops with start_loop/end_loop detection
+- Added 5 different turtle shapes: turtle, arrow, circle, square, triangle
+- Turtle now changes color based on color() command with enhanced visual design
+- Added shape() command support in parser
+- Created quick shape buttons in sidebar for easy shape switching
+- Updated examples to be compatible with current parser (removed array indexing)
+- Enhanced turtle graphics with eyes, shell patterns, and better proportions
+
+### 2025-06-30: Enhanced Parser and Debug Features  
 - Fixed error parsing variables in turtle commands (goto, circle, etc.)
 - Added support for advanced turtle commands: dot(), setheading(), hideturtle(), showturtle()
 - Implemented function definition parsing and expansion

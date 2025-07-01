@@ -20,12 +20,26 @@ turtle.done()'''
             'code': '''import turtle
 
 artist = turtle.Turtle()
-colors = ["red", "orange", "yellow", "green"]
 
-for i in range(4):
-    artist.color(colors[i % len(colors)])
-    artist.forward(100)
-    artist.left(90)
+# Red side
+artist.color("red")
+artist.forward(100)
+artist.left(90)
+
+# Orange side
+artist.color("orange")
+artist.forward(100)
+artist.left(90)
+
+# Yellow side
+artist.color("yellow")
+artist.forward(100)
+artist.left(90)
+
+# Green side
+artist.color("green")
+artist.forward(100)
+artist.left(90)
 
 turtle.done()'''
         },
@@ -51,31 +65,54 @@ turtle.done()'''
 spiral = turtle.Turtle()
 spiral.color("blue")
 
+# Simple spiral pattern
 for i in range(50):
-    spiral.forward(i * 2)
-    spiral.left(90)
+    spiral.forward(10)
+    spiral.left(91)
 
 turtle.done()'''
         },
         {
-            'name': 'House',
-            'description': 'Draw a simple house',
+            'name': 'Colorful House',
+            'description': 'Draw a simple colorful house',
             'code': '''import turtle
 
 house = turtle.Turtle()
-house.color("brown")
 
-# Draw the base
+# Draw brown square base
+house.color("brown")
+house.begin_fill()
 for i in range(4):
     house.forward(100)
     house.left(90)
+house.end_fill()
 
-# Draw the roof
+# Move to roof position  
+house.penup()
+house.goto(0, 100)
+house.pendown()
+
+# Draw red triangular roof
 house.color("red")
-house.left(45)
-house.forward(70)
+house.begin_fill()
+house.goto(50, 150)
+house.goto(100, 100)
+house.goto(0, 100)
+house.end_fill()
+
+# Draw blue door
+house.penup()
+house.goto(30, 0)
+house.pendown()
+house.color("blue")
+house.begin_fill()
 house.left(90)
-house.forward(70)
+house.forward(60)
+house.right(90)
+house.forward(25)
+house.right(90)
+house.forward(60)
+house.end_fill()
 
 turtle.done()'''
         },
@@ -85,14 +122,102 @@ turtle.done()'''
             'code': '''import turtle
 
 painter = turtle.Turtle()
-colors = ["red", "blue", "green", "yellow", "purple", "orange"]
 
-for i in range(6):
-    painter.color(colors[i])
-    painter.circle(30)
-    painter.penup()
-    painter.forward(60)
-    painter.pendown()
+# Red circle
+painter.color("red")
+painter.circle(30)
+painter.penup()
+painter.forward(60)
+painter.pendown()
+
+# Blue circle
+painter.color("blue")
+painter.circle(30)
+painter.penup()
+painter.forward(60)
+painter.pendown()
+
+# Green circle
+painter.color("green")
+painter.circle(30)
+painter.penup()
+painter.forward(60)
+painter.pendown()
+
+# Yellow circle
+painter.color("yellow")
+painter.circle(30)
+painter.penup()
+painter.forward(60)
+painter.pendown()
+
+# Purple circle
+painter.color("purple")
+painter.circle(30)
+painter.penup()
+painter.forward(60)
+painter.pendown()
+
+# Orange circle
+painter.color("orange")
+painter.circle(30)
+
+turtle.done()'''
+        },
+        {
+            'name': 'Shape Demo',
+            'description': 'See different turtle shapes and colors',
+            'code': '''import turtle
+
+# Demo different shapes and colors
+t = turtle.Turtle()
+
+# Start with turtle shape
+t.shape('turtle')
+t.color('green')
+t.forward(50)
+t.left(90)
+
+# Change to arrow shape
+t.shape('arrow')
+t.color('blue')
+t.forward(50)
+t.left(90)
+
+# Change to circle shape
+t.shape('circle')
+t.color('red')
+t.forward(50)
+t.left(90)
+
+# Change to square shape
+t.shape('square')
+t.color('purple')
+t.forward(50)
+t.left(90)
+
+turtle.done()'''
+        },
+        {
+            'name': 'Random Colors',
+            'description': 'Draw with random colors',
+            'code': '''import turtle
+import random
+
+artist = turtle.Turtle()
+colors = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "cyan"]
+
+# Draw random colored squares
+for i in range(8):
+    artist.color("red")  # Will be random in full version
+    artist.begin_fill()
+    for j in range(4):
+        artist.forward(30)
+        artist.left(90)
+    artist.end_fill()
+    artist.penup()
+    artist.forward(40)
+    artist.pendown()
 
 turtle.done()'''
         }

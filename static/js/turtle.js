@@ -35,6 +35,7 @@ class TurtleCanvas {
         this.turtle.penSize = 1;
         this.turtle.filling = false;
         this.turtle.visible = true;
+        this.turtle.shape = 'turtle'; // Default shape
         
         // Clear animation queue
         this.animationQueue = [];
@@ -49,33 +50,150 @@ class TurtleCanvas {
         if (!this.turtle.visible) return;
         
         const ctx = this.ctx;
-        const size = 10;
+        const size = 15;
         
         ctx.save();
         ctx.translate(this.turtle.x, this.turtle.y);
-        ctx.rotate((this.turtle.angle - 90) * Math.PI / 180); // Adjust for turtle facing up by default
+        ctx.rotate((this.turtle.angle - 90) * Math.PI / 180);
         
-        // Draw turtle body
-        ctx.fillStyle = '#228B22';
+        const turtleColor = this.turtle.color || '#228B22';
+        
+        switch (this.turtle.shape) {
+            case 'arrow':
+                this.drawArrow(ctx, size, turtleColor);
+                break;
+            case 'circle':
+                this.drawCircle(ctx, size, turtleColor);
+                break;
+            case 'square':
+                this.drawSquare(ctx, size, turtleColor);
+                break;
+            case 'triangle':
+                this.drawTriangle(ctx, size, turtleColor);
+                break;
+            default: // 'turtle'
+                this.drawTurtleShape(ctx, size, turtleColor);
+                break;
+        }
+        
+        ctx.restore();
+    }
+    
+    drawTurtleShape(ctx, size, color) {
+        // Draw turtle shell (main body)
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.ellipse(0, 0, size, size * 0.8, 0, 0, 2 * Math.PI);
         ctx.fill();
+        ctx.stroke();
         
-        // Draw turtle head
-        ctx.fillStyle = '#32CD32';
+        // Draw turtle head (lighter shade)
+        const headColor = this.lightenColor(color, 30);
+        ctx.fillStyle = headColor;
         ctx.beginPath();
         ctx.ellipse(0, -size * 0.6, size * 0.4, size * 0.6, 0, 0, 2 * Math.PI);
         ctx.fill();
+        ctx.stroke();
         
-        // Draw direction indicator
-        ctx.strokeStyle = '#FF4500';
+        // Draw shell pattern
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const hexSize = size * 0.3;
+        for (let i = 0; i < 6; i++) {
+            const angle = i * Math.PI / 3;
+            const x = Math.cos(angle) * hexSize;
+            const y = Math.sin(angle) * hexSize;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.closePath();
+        ctx.stroke();
+        
+        // Draw eyes
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(-3, -size * 0.8, 1.5, 0, 2 * Math.PI);
+        ctx.arc(3, -size * 0.8, 1.5, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+    
+    drawArrow(ctx, size, color) {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, -size);
+        ctx.lineTo(-size * 0.5, size * 0.5);
+        ctx.lineTo(-size * 0.2, size * 0.5);
+        ctx.lineTo(-size * 0.2, size);
+        ctx.lineTo(size * 0.2, size);
+        ctx.lineTo(size * 0.2, size * 0.5);
+        ctx.lineTo(size * 0.5, size * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    drawCircle(ctx, size, color) {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Direction indicator
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(0, -size * 0.5, 2, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+    
+    drawSquare(ctx, size, color) {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.fillRect(-size, -size, size * 2, size * 2);
+        ctx.strokeRect(-size, -size, size * 2, size * 2);
+        
+        // Direction indicator
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-2, -size, 4, 4);
+    }
+    
+    drawTriangle(ctx, size, color) {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, -size);
-        ctx.lineTo(0, -size * 1.5);
+        ctx.lineTo(-size, size);
+        ctx.lineTo(size, size);
+        ctx.closePath();
+        ctx.fill();
         ctx.stroke();
-        
-        ctx.restore();
+    }
+    
+    // Helper function to lighten colors
+    lightenColor(color, percent) {
+        if (color.startsWith('#')) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const B = (num >> 8 & 0x00FF) + amt;
+            const G = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                         (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 + 
+                         (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
+        }
+        return color; // Return original if not hex
     }
     
     drawDot(size, color) {
@@ -192,6 +310,11 @@ class TurtleCanvas {
                     break;
                 case 'showturtle':
                     this.turtle.visible = true;
+                    this.redraw();
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'shape':
+                    this.turtle.shape = command.shape || 'turtle';
                     this.redraw();
                     setTimeout(resolve, delay / 4);
                     break;
