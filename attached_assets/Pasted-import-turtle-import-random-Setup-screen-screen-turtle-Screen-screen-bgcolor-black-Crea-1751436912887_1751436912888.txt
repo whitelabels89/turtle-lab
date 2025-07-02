@@ -1,0 +1,208 @@
+import turtle
+import random
+
+# Setup screen
+screen = turtle.Screen()
+screen.bgcolor("black")
+
+# Create a turtle for drawing stars
+star_turtle = turtle.Turtle()
+star_turtle.hideturtle()
+star_turtle.speed(0)
+star_turtle.penup()
+
+# Draw stars randomly in the background
+for _ in range(50):
+    x = random.randint(-300, 300)
+    y = random.randint(-300, 300)
+    star_turtle.goto(x, y)
+    star_turtle.dot(random.randint(2, 4), "white")
+
+# Create main turtle for rocket
+t = turtle.Turtle()
+t.speed(3)
+
+# ------------------------
+# Rocket Body (deep aqua)
+def draw_body():
+    t.penup()
+    t.goto(-20, -100)
+    t.pendown()
+    t.color("#007B8A")  # deep aqua blue
+    t.begin_fill()
+    for _ in range(2):
+        t.forward(40)
+        t.left(90)
+        t.forward(200)
+        t.left(90)
+    t.end_fill()
+
+# ------------------------
+# Rocket Nose Cone (lighter blue)
+def draw_nose():
+    t.penup()
+    t.goto(-20, 100)
+    t.pendown()
+    t.color("#0099CC")  # lighter blue
+    t.begin_fill()
+    t.goto(0, 140)
+    t.goto(20, 100)
+    t.goto(-20, 100)
+    t.end_fill()
+
+# ------------------------
+# Side Fins (dark teal)
+def draw_fins():
+    # Left fin
+    t.penup()
+    t.goto(-20, -100)
+    t.pendown()
+    t.color("#004D4D")  # dark teal
+    t.begin_fill()
+    t.goto(-50, -130)
+    t.goto(-20, -60)
+    t.goto(-20, -100)
+    t.end_fill()
+
+    # Right fin
+    t.penup()
+    t.goto(20, -100)
+    t.pendown()
+    t.begin_fill()
+    t.goto(50, -130)
+    t.goto(20, -60)
+    t.goto(20, -100)
+    t.end_fill()
+
+# ------------------------
+# Fire
+def draw_fire():
+    t.penup()
+    t.goto(-10, -100)
+    t.pendown()
+    t.color("orange")
+    t.begin_fill()
+    t.goto(0, -150)
+    t.goto(10, -100)
+    t.goto(-10, -100)
+    t.end_fill()
+
+    t.color("red")
+    t.begin_fill()
+    t.goto(0, -140)
+    t.goto(5, -100)
+    t.goto(-5, -100)
+    t.goto(0, -140)
+    t.end_fill()
+
+# ------------------------
+# Window with centered Cat Astronaut
+def draw_window_and_cat():
+    # Window frame
+    window_x = 0
+    window_y = 30
+    window_radius = 20
+
+    t.penup()
+    t.goto(window_x, window_y - window_radius)
+    t.pendown()
+    t.color("white")
+    t.begin_fill()
+    t.circle(window_radius)
+    t.end_fill()
+
+    # Cat face background (light orange)
+    t.penup()
+    t.goto(window_x, window_y - 18)
+    t.pendown()
+    t.color("#FFCC99")
+    t.begin_fill()
+    t.circle(18)
+    t.end_fill()
+
+    # Ears
+    t.penup()
+    t.goto(window_x - 18, window_y + 10)
+    t.pendown()
+    t.color("#FFCC99")
+    t.begin_fill()
+    t.goto(window_x - 10, window_y + 40)
+    t.goto(window_x - 2, window_y + 10)
+    t.goto(window_x - 18, window_y + 10)
+    t.end_fill()
+
+    t.penup()
+    t.goto(window_x + 18, window_y + 10)
+    t.pendown()
+    t.begin_fill()
+    t.goto(window_x + 10, window_y + 40)
+    t.goto(window_x + 2, window_y + 10)
+    t.goto(window_x + 18, window_y + 10)
+    t.end_fill()
+
+    # Eyes
+    t.penup()
+    t.goto(window_x - 7, window_y + 3)
+    t.pendown()
+    t.color("black")
+    t.dot(5)
+
+    t.penup()
+    t.goto(window_x + 7, window_y + 3)
+    t.pendown()
+    t.dot(5)
+
+    # Nose
+    t.penup()
+    t.goto(window_x, window_y - 7)
+    t.pendown()
+    t.color("pink")
+    t.begin_fill()
+    t.circle(3)
+    t.end_fill()
+
+    # Mouth like :3 in red, thicker lines for visibility
+    t.penup()
+    t.goto(window_x - 6, window_y - 13)
+    t.pendown()
+    t.color("red")
+    t.pensize(3)  # thicker line
+    t.setheading(-30)
+    t.circle(6, 60)
+
+    # Reset pen size to default after
+    t.pensize(1)
+
+
+    # Whiskers (3 lines left and right)
+    whiskers = [
+        (window_x - 15, window_y - 5),
+        (window_x - 15, window_y - 10),
+        (window_x - 15, window_y - 15),
+        (window_x + 15, window_y - 5),
+        (window_x + 15, window_y - 10),
+        (window_x + 15, window_y - 15),
+    ]
+    t.color('orange')
+    for x, y in whiskers:
+        t.penup()
+        t.goto(x, y)
+        t.pendown()
+        if x < window_x:
+            t.setheading(180)  # left whiskers
+        else:
+            t.setheading(0)    # right whiskers
+        t.forward(12)
+
+
+# ------------------------
+# Draw all parts
+draw_body()
+draw_nose()
+draw_fins()
+draw_fire()
+draw_window_and_cat()
+
+# Finish
+t.hideturtle()
+screen.mainloop()

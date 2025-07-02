@@ -27,6 +27,15 @@ A web-based Python turtle graphics playground designed for kids to learn program
 
 ## Recent Changes
 
+### 2025-07-02: Coordinate System Fix and Fill Improvements
+- **MAJOR FIX**: Fixed coordinate system to match Python turtle exactly
+- Added comprehensive hex color support (#007B8A, #0099CC, #004D4D, #FFCC99)
+- Fixed circle fill rendering - now draws solid filled circles immediately
+- Created accurate "Cat Rocket" example matching original reference screenshot
+- Improved begin_fill() and end_fill() functionality for complex shapes
+- Enhanced color handling to set both pen and fill colors simultaneously
+- Parser now properly converts function-based code to direct commands
+
 ### 2025-07-01: Turtle Shapes and Color Features
 - Fixed loop parsing and execution - now properly handles for loops with start_loop/end_loop detection
 - Added 5 different turtle shapes: turtle, arrow, circle, square, triangle

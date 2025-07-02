@@ -17,6 +17,7 @@ class TurtleCanvas {
         this.animationQueue = [];
         this.isAnimating = false;
         this.fillPath = [];
+        this.isFilling = false;
         
         this.reset();
     }
@@ -242,6 +243,11 @@ class TurtleCanvas {
             const delay = Math.max(50, 500 - (this.speed * 50));
             
             switch (command.type) {
+                case 'bgcolor':
+                    // Set canvas background color
+                    this.canvas.style.backgroundColor = command.color;
+                    setTimeout(resolve, delay / 4);
+                    break;
                 case 'forward':
                     this.animateMovement(command.distance, resolve);
                     break;
@@ -256,6 +262,7 @@ class TurtleCanvas {
                     break;
                 case 'color':
                     this.turtle.color = command.color;
+                    this.turtle.fillColor = command.color;
                     setTimeout(resolve, delay / 4);
                     break;
                 case 'fillcolor':
@@ -275,8 +282,12 @@ class TurtleCanvas {
                     setTimeout(resolve, delay / 4);
                     break;
                 case 'goto':
-                    this.animateGoto(command.x + this.canvas.width / 2, 
-                                   this.canvas.height / 2 - command.y, resolve);
+                    // Transform Python turtle coordinates to canvas coordinates
+                    // Python turtle: (0,0) at center, Y+ up
+                    // Canvas: (0,0) at top-left, Y+ down
+                    const canvasX = command.x + this.canvas.width / 2;
+                    const canvasY = this.canvas.height / 2 - command.y;
+                    this.animateGoto(canvasX, canvasY, resolve);
                     break;
                 case 'circle':
                     this.animateCircle(command.radius, resolve);
@@ -320,6 +331,17 @@ class TurtleCanvas {
                     break;
                 case 'start_loop':
                     // Handle loop start - this is managed by the parser
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'begin_fill':
+                    this.fillPath = [];
+                    this.turtle.filling = true;
+                    this.fillPath.push({x: this.turtle.x, y: this.turtle.y});
+                    setTimeout(resolve, delay / 4);
+                    break;
+                case 'end_fill':
+                    this.drawFill();
+                    this.turtle.filling = false;
                     setTimeout(resolve, delay / 4);
                     break;
                 default:
@@ -436,16 +458,31 @@ class TurtleCanvas {
     }
     
     animateCircle(radius, callback) {
+        // If filling, draw solid circle immediately
+        if (this.turtle.filling) {
+            this.ctx.fillStyle = this.turtle.fillColor;
+            this.ctx.beginPath();
+            this.ctx.arc(this.turtle.x, this.turtle.y - radius, Math.abs(radius), 0, 2 * Math.PI);
+            this.ctx.fill();
+            // Also draw outline if pen is down
+            if (this.turtle.penDown) {
+                this.ctx.strokeStyle = this.turtle.color;
+                this.ctx.lineWidth = this.turtle.penSize;
+                this.ctx.stroke();
+            }
+            callback();
+            return;
+        }
+        
+        // Normal circle animation
         const circumference = 2 * Math.PI * Math.abs(radius);
         const steps = Math.max(20, circumference / 5);
         const angleStep = 360 / steps;
         const delay = Math.max(10, 200 - (this.speed * 20));
         let currentStep = 0;
         
-        const centerX = this.turtle.x + (radius > 0 ? -radius * Math.sin(this.turtle.angle * Math.PI / 180) : 
-                                                       radius * Math.sin(this.turtle.angle * Math.PI / 180));
-        const centerY = this.turtle.y + (radius > 0 ? radius * Math.cos(this.turtle.angle * Math.PI / 180) : 
-                                                      -radius * Math.cos(this.turtle.angle * Math.PI / 180));
+        const centerX = this.turtle.x;
+        const centerY = this.turtle.y - radius;
         
         const animate = () => {
             if (currentStep >= steps) {
@@ -457,8 +494,8 @@ class TurtleCanvas {
             const oldY = this.turtle.y;
             
             const angle = (currentStep * angleStep) * Math.PI / 180;
-            this.turtle.x = centerX + Math.abs(radius) * Math.cos(angle + this.turtle.angle * Math.PI / 180 - Math.PI / 2);
-            this.turtle.y = centerY + Math.abs(radius) * Math.sin(angle + this.turtle.angle * Math.PI / 180 - Math.PI / 2);
+            this.turtle.x = centerX + Math.abs(radius) * Math.cos(angle);
+            this.turtle.y = centerY + Math.abs(radius) * Math.sin(angle);
             
             if (this.turtle.penDown) {
                 this.ctx.strokeStyle = this.turtle.color;
@@ -468,10 +505,6 @@ class TurtleCanvas {
                 this.ctx.moveTo(oldX, oldY);
                 this.ctx.lineTo(this.turtle.x, this.turtle.y);
                 this.ctx.stroke();
-                
-                if (this.turtle.filling) {
-                    this.fillPath.push({x: this.turtle.x, y: this.turtle.y});
-                }
             }
             
             this.redraw();

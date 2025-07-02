@@ -220,5 +220,201 @@ for i in range(8):
     artist.pendown()
 
 turtle.done()'''
+        },
+        {
+            'name': 'Cat Rocket',
+            'description': 'Draw rocket with cat astronaut like the original',
+            'code': '''import turtle
+import random
+
+# Setup screen
+screen = turtle.Screen()
+screen.bgcolor("black")
+
+# Create a turtle for drawing stars
+star_turtle = turtle.Turtle()
+star_turtle.hideturtle()
+star_turtle.speed(0)
+star_turtle.penup()
+
+# Draw stars randomly in the background
+for _ in range(50):
+    x = random.randint(-300, 300)
+    y = random.randint(-300, 300)
+    star_turtle.goto(x, y)
+    star_turtle.dot(random.randint(2, 4), "white")
+
+# Create main turtle for rocket
+t = turtle.Turtle()
+t.speed(3)
+
+# Rocket Body (teal rectangle)
+t.penup()
+t.goto(-20, -100)
+t.pendown()
+t.color("teal")
+t.begin_fill()
+t.goto(20, -100)
+t.goto(20, 100)
+t.goto(-20, 100)
+t.goto(-20, -100)
+t.end_fill()
+
+# Rocket Nose (lightblue triangle)
+t.penup()
+t.goto(-20, 100)
+t.pendown()
+t.color("lightblue")
+t.begin_fill()
+t.goto(0, 140)
+t.goto(20, 100)
+t.goto(-20, 100)
+t.end_fill()
+
+# Left fin (darkslategray)
+t.penup()
+t.goto(-20, -100)
+t.pendown()
+t.color("darkslategray")
+t.begin_fill()
+t.goto(-50, -130)
+t.goto(-20, -60)
+t.goto(-20, -100)
+t.end_fill()
+
+# Right fin (darkslategray)
+t.penup()
+t.goto(20, -100)
+t.pendown()
+t.begin_fill()
+t.goto(50, -130)
+t.goto(20, -60)
+t.goto(20, -100)
+t.end_fill()
+
+# Fire outer (orange)
+t.penup()
+t.goto(-10, -100)
+t.pendown()
+t.color("orange")
+t.begin_fill()
+t.goto(0, -150)
+t.goto(10, -100)
+t.goto(-10, -100)
+t.end_fill()
+
+# Fire inner (red)
+t.color("red")
+t.begin_fill()
+t.goto(0, -140)
+t.goto(5, -100)
+t.goto(-5, -100)
+t.goto(0, -140)
+t.end_fill()
+
+# Window frame (white circle)
+t.penup()
+t.goto(0, 10)
+t.pendown()
+t.color("white")
+t.begin_fill()
+t.circle(20)
+t.end_fill()
+
+# Cat face (peachpuff circle)
+t.penup()
+t.goto(0, 12)
+t.pendown()
+t.color("peachpuff")
+t.begin_fill()
+t.circle(18)
+t.end_fill()
+
+# Left ear (peachpuff)
+t.penup()
+t.goto(-18, 40)
+t.pendown()
+t.color("peachpuff")
+t.begin_fill()
+t.goto(-10, 70)
+t.goto(-2, 40)
+t.goto(-18, 40)
+t.end_fill()
+
+# Right ear (peachpuff)
+t.penup()
+t.goto(18, 40)
+t.pendown()
+t.begin_fill()
+t.goto(10, 70)
+t.goto(2, 40)
+t.goto(18, 40)
+t.end_fill()
+
+# Cat eyes (black dots)
+t.color("black")
+t.penup()
+t.goto(-7, 33)
+t.pendown()
+t.dot(5)
+
+t.penup()
+t.goto(7, 33)
+t.pendown()
+t.dot(5)
+
+# Cat nose (pink dot)
+t.penup()
+t.goto(0, 23)
+t.pendown()
+t.color("pink")
+t.dot(3)
+
+# Cat mouth (red curve - simplified)
+t.penup()
+t.goto(-6, 17)
+t.pendown()
+t.color("red")
+t.goto(-3, 15)
+t.goto(0, 17)
+t.goto(3, 15)
+t.goto(6, 17)
+
+# Whiskers (orange lines)
+t.color("orange")
+# Left whiskers
+t.penup()
+t.goto(-15, 35)
+t.pendown()
+t.goto(-27, 35)
+
+t.penup()
+t.goto(-15, 30)
+t.pendown()
+t.goto(-27, 30)
+
+t.penup()
+t.goto(-15, 25)
+t.pendown()
+t.goto(-27, 25)
+
+# Right whiskers
+t.penup()
+t.goto(15, 35)
+t.pendown()
+t.goto(27, 35)
+
+t.penup()
+t.goto(15, 30)
+t.pendown()
+t.goto(27, 30)
+
+t.penup()
+t.goto(15, 25)
+t.pendown()
+t.goto(27, 25)
+
+t.hideturtle()
+turtle.done()'''
         }
     ]
